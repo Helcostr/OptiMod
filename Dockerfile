@@ -1,5 +1,8 @@
 # ---- Build Stage (Rust) ----
-FROM rust:1-bookworm as rust-builder
+FROM debian:bookworm as rust-builder
+RUN apt-get update && apt-get install -y curl build-essential pkg-config libssl-dev
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 WORKDIR /app
 COPY Cargo.toml .
 COPY src ./src
