@@ -2,8 +2,13 @@ use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 mod config;
+mod chat;
+mod events;
+mod web;
 
 use crate::config::app_config::AppConfig;
+use std::sync::Arc;
+use tokio::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -16,20 +21,21 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Starting Secure Twitch Chat Monitor...");
 
-    let config = AppConfig::load("config.toml").unwrap_or_else(|_| {
-        AppConfig {
-            server: config::app_config::ServerConfig { port: 3000 },
-            twitch: config::app_config::TwitchConfig { channel: "twitchpresents".into() },
-        }
-    });
+    let config = AppConfig::load("config.toml").unwrap_or_else(|_| AppConfig::from_env());
 
     info!("Loaded config for channel: {}", config.twitch.channel);
 
-    // TODO: Initialize web server, EventSub connection, etc.
+    let state = Arc::new(web::auth::AppState {
+        config: config.clone(),
+    });
+
+    let app = web::auth::router(state);
+
+    let addr = format!("0.0.0.0:{}", config.server.port);
+    info!("Starting web server on {}", addr);
+    let listener = TcpListener::bind(addr).await?;
     
-    // Keep the main thread alive for now
-    tokio::signal::ctrl_c().await?;
-    info!("Shutting down");
+    axum::serve(listener, app).await?;
 
     Ok(())
 }
