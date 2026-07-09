@@ -1,5 +1,5 @@
 # ---- Build Stage (Rust) ----
-FROM rust:1.85-bookworm as rust-builder
+FROM rust:latest AS rust-builder
 RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY Cargo.toml .
@@ -7,7 +7,7 @@ COPY src ./src
 RUN cargo build --release
 
 # ---- Build Stage (UI) ----
-FROM node:20-bookworm-slim as ui-builder
+FROM node:20-bookworm-slim AS ui-builder
 WORKDIR /ui
 COPY ui/package.json ./
 RUN npm install

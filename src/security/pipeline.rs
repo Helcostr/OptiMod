@@ -10,17 +10,24 @@ pub fn inspect_message(message: &str) -> SecurityReport {
         flags.push("unicode_normalized".to_string());
     }
 
-    let skeleton = unicode_security::skeleton(message);
+    let skeleton: String = unicode_security::skeleton(message).collect();
     if skeleton != normalized {
         flags.push("confusable_chars_detected".to_string());
     }
 
-    if normalized.chars().any(|c| c.is_control() && !c.is_whitespace()) {
+    if normalized
+        .chars()
+        .any(|c| c.is_control() && !c.is_whitespace())
+    {
         flags.push("control_characters_detected".to_string());
     }
 
     SecurityReport {
-        normalized_message: if normalized == message { None } else { Some(normalized) },
+        normalized_message: if normalized == message {
+            None
+        } else {
+            Some(normalized)
+        },
         flags,
     }
 }
