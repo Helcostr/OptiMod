@@ -1,5 +1,6 @@
 import { createEffect, createSignal, onCleanup } from "solid-js";
-import "./App.css";
+import { Link } from "@tanstack/solid-router";
+import "../App.css";
 
 type Badge = {
   set_id: string;
@@ -35,10 +36,6 @@ type ChannelResponse = {
   error: string | null;
 };
 
-type FlaggedMessagesResponse = {
-  messages: ChatMessage[];
-};
-
 function formatTime(ts: number) {
   const d = new Date(ts);
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -51,7 +48,7 @@ function getBadgeDisplay(badges: Badge[] | undefined) {
 
 const API_BASE = "http://localhost:3000";
 
-function App() {
+export default function Home() {
   const backendUrl = `${API_BASE}/auth/login`;
   const [status, setStatus] = createSignal("Checking backend status...");
   const [channel, setChannel] = createSignal("Not connected");
@@ -61,8 +58,6 @@ function App() {
   const [channelInput, setChannelInput] = createSignal("");
   const [switching, setSwitching] = createSignal(false);
   const [switchError, setSwitchError] = createSignal<string | null>(null);
-  const [flaggedMessages, setFlaggedMessages] = createSignal<ChatMessage[]>([]);
-  const [loadingFlagged, setLoadingFlagged] = createSignal(false);
 
   createEffect(() => {
     let closed = false;
@@ -112,19 +107,6 @@ function App() {
     });
   });
 
-  const fetchFlaggedMessages = async () => {
-    setLoadingFlagged(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/flagged`);
-      const data = (await res.json()) as FlaggedMessagesResponse;
-      setFlaggedMessages(data.messages);
-    } catch (err) {
-      console.error("Failed to fetch flagged messages:", err);
-    } finally {
-      setLoadingFlagged(false);
-    }
-  };
-
   const switchChannel = async (e: Event) => {
     e.preventDefault();
     const target = channelInput().trim();
@@ -170,10 +152,13 @@ function App() {
           Channel: <strong class="channel-name">#{channel()}</strong>
         </p>
         <p class="status">
-          Auth: {authenticated() ? "connected" : "not connected"} • WS:
-          {wsRunning() ? " running" : " idle"}
-        </p>
-      </section>
+                  Auth: {authenticated() ? "connected" : "not connected"} • WS:
+                  {wsRunning() ? " running" : " idle"}
+                </p>
+                <Link to="/messages" class="primary-button">
+                  View Message History
+                </Link>
+              </section>
 
       <section class="panel">
         <h2>Switch Channel</h2>
@@ -218,43 +203,6 @@ function App() {
         </ol>
       </section>
 
-      <section class="panel">
-        <h2>Flagged Messages History</h2>
-        <p class="lead">
-                  View all messages with security flags for moderation and debugging.
-                  Messages persist across server restarts via PostgreSQL.
-                </p>
-        <button
-          class="primary-button"
-          onClick={fetchFlaggedMessages}
-          disabled={loadingFlagged()}
-        >
-          {loadingFlagged() ? "Loading..." : "Refresh Flagged Messages"}
-        </button>
-        <div class="event-list">
-          {flaggedMessages().length === 0 ? (
-            <p class="empty">No flagged messages found. Click above to load.</p>
-          ) : (
-            flaggedMessages().map((message) => (
-              <article class="event-card flagged">
-                <header>
-                  <strong style={{ color: message.color || "#91f5b8" }}>{message.user_name}</strong>
-                  <span>@{message.user_login}</span>
-                  <span class="timestamp">{formatTime(message.timestamp_ms)}</span>
-                </header>
-                <p>{message.normalized_message ?? message.raw_message}</p>
-                {getBadgeDisplay(message.badges) && (
-                  <small class="badges">{getBadgeDisplay(message.badges)}</small>
-                )}
-                <small class="flags" style={{ color: "#ff6b6b" }}>
-                  {message.security_flags.join(", ")}
-                </small>
-              </article>
-            ))
-          )}
-        </div>
-      </section>
-
       <section class="panel chat-panel">
         <h2>Live Events ({messages().length})</h2>
         <div class="event-list">
@@ -264,13 +212,19 @@ function App() {
             messages().map((message) => (
               <article class="event-card">
                 <header>
-                  <strong style={{ color: message.color || "#91f5b8" }}>{message.user_name}</strong>
+                  <strong style={{ color: message.color || "#91f5b8" }}>
+                    {message.user_name}
+                  </strong>
                   <span>@{message.user_login}</span>
-                  <span class="timestamp">{formatTime(message.timestamp_ms)}</span>
+                  <span class="timestamp">
+                    {formatTime(message.timestamp_ms)}
+                  </span>
                 </header>
                 <p>{message.normalized_message ?? message.raw_message}</p>
                 {getBadgeDisplay(message.badges) && (
-                  <small class="badges">{getBadgeDisplay(message.badges)}</small>
+                  <small class="badges">
+                    {getBadgeDisplay(message.badges)}
+                  </small>
                 )}
                 <small class="flags">
                   {message.security_flags.length > 0
@@ -285,5 +239,3 @@ function App() {
     </main>
   );
 }
-
-export default App;

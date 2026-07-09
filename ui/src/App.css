@@ -161,3 +161,116 @@ ol {
 .status.error {
     color: #ff7b64;
 }
+
+/* DB message table */
+.table-container {
+    margin-top: 12px;
+    overflow: auto;
+    width: 100%;
+}
+
+.table-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 8px 0;
+}
+
+.table-controls .primary-button {
+    margin-top: 0;
+    border: none;
+    cursor: pointer;
+}
+
+.table-controls .primary-button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.table-filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #b8c0d9;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.table-page-info {
+    color: #96a0bd;
+    font-size: 0.85rem;
+}
+
+.message-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    background: #10131b;
+    border: 1px solid #2b3142;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.message-table thead {
+    background: #171a24;
+}
+
+.message-table th {
+    text-align: left;
+    padding: 10px 14px;
+    color: #8aa4ff;
+    font-weight: 600;
+    border-bottom: 1px solid #2b3142;
+    white-space: nowrap;
+}
+
+.message-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+}
+
+.message-table th.sortable:hover {
+    color: #c0d0ff;
+}
+
+.message-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #1f2433;
+    color: #eef2ff;
+    vertical-align: top;
+}
+
+.message-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.message-table tbody tr:hover {
+    background: #181c2a;
+}
+
+.message-table tr.flagged {
+    background: #2a1515;
+}
+
+.message-table tr.flagged:hover {
+    background: #331a1a;
+}
+
+.table-user-login {
+    color: #96a0bd;
+    font-size: 0.8rem;
+}
+
+.table-flags {
+    font-size: 0.8rem;
+}
+
+.table-flags.empty {
+    color: #96a0bd;
+}
+
+.table-flags.flagged {
+    color: #ff6b6b;
+    font-weight: 600;
+}
