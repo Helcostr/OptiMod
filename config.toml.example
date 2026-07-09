@@ -8,3 +8,9 @@ channel = "your_channel_name"
 
 # Secrets are read from .env / environment variables — do NOT put them here.
 # TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET
+
+[storage]
+# PostgreSQL connection URL for message history
+# Example: postgresql://user:password@localhost:5432/twitch_messages
+# Can also be set via DATABASE_URL environment variable
+database_url = "postgresql://twitch:twitchpass@localhost/twitch_messages"

@@ -45,7 +45,7 @@
 # *.ipr
 
 # CMake
-cmake-build-*/
+.idea/**/cmake.xml
 
 # Mongo Explorer plugin
 .idea/**/mongoSettings.xml
@@ -81,11 +81,10 @@ fabric.properties
 .idea/caches/build_file_checksums.ser
 
 ### JetBrains+all Patch ###
-# Ignore everything but code style settings and run configurations
+# Ignore everything but code style settings and configurations
 # that are supposed to be shared within teams.
 
 .idea/*
-
 !.idea/codeStyles
 !.idea/runConfigurations
 

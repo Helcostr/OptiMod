@@ -6,6 +6,13 @@ pub struct ServerConfig {
     pub port: u16,
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct StorageConfig {
+    /// PostgreSQL connection URL: postgresql://user:pass@host:port/db
+    /// Or SQLite path: sqlite:./messages.db
+    pub database_url: Option<String>,
+}
+
 /// Raw TOML representation — secrets are optional here, supplied via env vars.
 #[derive(Debug, Clone, Deserialize)]
 struct RawTwitchConfig {
@@ -28,12 +35,15 @@ pub struct TwitchConfig {
 pub struct AppConfig {
     pub server: ServerConfig,
     pub twitch: TwitchConfig,
+    pub storage: StorageConfig,
 }
 
 #[derive(Deserialize)]
 struct RawAppConfig {
     server: ServerConfig,
     twitch: RawTwitchConfig,
+    #[serde(default)]
+    storage: Option<StorageConfig>,
 }
 
 impl AppConfig {
@@ -44,20 +54,29 @@ impl AppConfig {
         // Overlay env vars on top of whatever was in the file
         let twitch = TwitchConfig {
             channel: raw.twitch.channel,
-            client_id: raw.twitch.client_id
+            client_id: raw
+                .twitch
+                .client_id
                 .or_else(|| std::env::var("TWITCH_CLIENT_ID").ok())
                 .unwrap_or_default(),
-            client_secret: raw.twitch.client_secret
+            client_secret: raw
+                .twitch
+                .client_secret
                 .or_else(|| std::env::var("TWITCH_CLIENT_SECRET").ok())
                 .unwrap_or_default(),
-            user_token: raw.twitch.user_token
+            user_token: raw
+                .twitch
+                .user_token
                 .or_else(|| std::env::var("TWITCH_USER_TOKEN").ok())
                 .unwrap_or_default(),
         };
 
+        let storage = raw.storage.unwrap_or(StorageConfig { database_url: None });
+
         Ok(AppConfig {
             server: raw.server,
             twitch,
+            storage,
         })
     }
 
@@ -71,6 +90,9 @@ impl AppConfig {
                 client_id: std::env::var("TWITCH_CLIENT_ID").unwrap_or_default(),
                 client_secret: std::env::var("TWITCH_CLIENT_SECRET").unwrap_or_default(),
                 user_token: std::env::var("TWITCH_USER_TOKEN").unwrap_or_default(),
+            },
+            storage: StorageConfig {
+                database_url: std::env::var("DATABASE_URL").ok(),
             },
         }
     }

@@ -1,11 +1,34 @@
 services:
+  postgres:
+    image: timescale/timescaledb:latest-pg17
+    environment:
+      POSTGRES_DB: twitch_messages
+      POSTGRES_USER: twitch
+      POSTGRES_PASSWORD: twitchpass
+      TIMESCALEDB_TELEMETRY: "off"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    command: postgres -c shared_preload_libraries=timescaledb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U twitch -d twitch_messages"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
   monitor:
     build: .
     ports:
       - "3000:3000"
+    environment:
+      DATABASE_URL: postgresql://twitch:twitchpass@postgres/twitch_messages
     env_file:
       - .env
-    volumes:
-      - ./config.toml:/app/config.toml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     command: ["./bot"]
+
+volumes:
+  postgres_data:
