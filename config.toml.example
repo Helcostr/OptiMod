@@ -1,5 +1,10 @@
 [server]
+# Port the web server (OAuth + SSE) will listen on
 port = 3000
 
 [twitch]
-channel = "twitchpresents"
+# The channel login name to monitor (e.g. your Twitch username)
+channel = "your_channel_name"
+
+# Secrets are read from .env / environment variables — do NOT put them here.
+# TWITCH_CLIENT_ID, TWITCH_CLIENT_SECRET

@@ -1,13 +1,23 @@
 use futures_util::{SinkExt, StreamExt};
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
-use tracing::{info, warn, error};
+use tracing::{error, info, warn};
 
-use crate::config::app_config::TwitchConfig;
-use crate::chat::http::{fetch_user_id, fetch_token_owner_id, subscribe_to_chat};
+use crate::{
+    chat::http::{fetch_token_owner_id, fetch_user_id, subscribe_to_chat},
+    config::app_config::TwitchConfig,
+    core::EventSender,
+    events::models::{Badge, ChatMessage},
+    plugins::Plugin,
+    security::pipeline::inspect_message,
+};
 
-use super::models::{TwitchWelcomeMessage, TwitchChatMessage};
+use super::models::{TwitchChatMessage, TwitchWelcomeMessage};
 
-pub async fn connect_and_listen(config: TwitchConfig) -> anyhow::Result<()> {
+pub async fn connect_and_listen(
+    config: TwitchConfig,
+    tx: EventSender,
+    plugins: std::sync::Arc<Vec<std::sync::Arc<dyn Plugin>>>,
+) -> anyhow::Result<()> {
     info!("Fetching Broadcaster User ID for channel: {}", config.channel);
     let broadcaster_id = fetch_user_id(&config.client_id, &config.user_token, &config.channel).await?;
     info!("Broadcaster ID: {}", broadcaster_id);
@@ -16,7 +26,6 @@ pub async fn connect_and_listen(config: TwitchConfig) -> anyhow::Result<()> {
     let token_owner_id = fetch_token_owner_id(&config.client_id, &config.user_token).await?;
 
     let url = "wss://eventsub.wss.twitch.tv/ws";
-    
     let (ws_stream, _) = connect_async(url).await?;
     info!("Connected to Twitch EventSub WebSocket");
 
@@ -36,22 +45,45 @@ pub async fn connect_and_listen(config: TwitchConfig) -> anyhow::Result<()> {
                 if let Ok(welcome) = serde_json::from_str::<TwitchWelcomeMessage>(&text) {
                     if welcome.metadata.message_type == "session_welcome" {
                         info!("Received session_welcome. Session ID: {}", welcome.payload.session.id);
-                        let sub_res = subscribe_to_chat(
+                        if let Err(e) = subscribe_to_chat(
                             &config.client_id,
                             &config.user_token,
                             &welcome.payload.session.id,
                             &broadcaster_id,
                             &token_owner_id,
-                        ).await;
-                        
-                        if let Err(e) = sub_res {
+                        )
+                        .await
+                        {
                             error!("Failed to subscribe to chat: {}", e);
                         }
                     }
                 } else if let Ok(chat) = serde_json::from_str::<TwitchChatMessage>(&text) {
                     if chat.metadata.message_type == "notification" {
-                        info!("Chat message from {}: {}", chat.payload.event.chatter_user_name, chat.payload.event.message.text);
-                        // TODO: Map to Internal Event and pipe to plugins
+                        let ev = chat.payload.event;
+                        let security = inspect_message(&ev.message.text);
+                        let badges = ev
+                            .badges
+                            .into_iter()
+                            .map(|b| Badge { set_id: b.set_id, id: b.id })
+                            .collect();
+                        let msg_event = ChatMessage::new(
+                            ev.message_id,
+                            ev.broadcaster_user_id,
+                            ev.broadcaster_user_login,
+                            ev.chatter_user_id,
+                            ev.chatter_user_login,
+                            ev.chatter_user_name,
+                            badges,
+                            ev.color,
+                            ev.message.text,
+                            security.normalized_message,
+                            security.flags,
+                        );
+
+                        for plugin in plugins.iter() {
+                            plugin.on_message(&msg_event);
+                        }
+                        let _ = tx.send(msg_event);
                     }
                 }
             }

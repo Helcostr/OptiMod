@@ -4,36 +4,27 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-# Async runtime
 tokio = { version = "1.36", features = ["full"] }
-
-# Twitch WebSocket / EventSub
 tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
 reqwest = { version = "0.11", features = ["json", "native-tls"] }
 futures-util = "0.3"
-
-# Configuration
+async-stream = "0.3"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.8"
 dotenvy = "0.15"
-
-# Web server for SSE
 axum = "0.7"
 tower-http = { version = "0.5", features = ["fs", "cors"] }
-
-# Logging
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-
-# Errors
 anyhow = "1.0"
 thiserror = "1.0"
-
-# Security
 unicode-security = "0.1"
 unicode-normalization = "0.1"
 zeroize = { version = "1.7", features = ["derive"] }
+rand = "0.8"
+base64 = "0.22"
+sha2 = "0.10"
 
 [profile.release]
 opt-level = 3

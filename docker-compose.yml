@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   monitor:
@@ -10,3 +10,4 @@ services:
     volumes:
       - ./config.toml:/app/config.toml:ro
     restart: unless-stopped
+    command: ["./bot"]

@@ -28,6 +28,8 @@ impl ChatMessage {
         badges: Vec<Badge>,
         color: String,
         raw_message: String,
+        normalized_message: Option<String>,
+        security_flags: Vec<String>,
     ) -> Self {
         let timestamp_ms = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -45,8 +47,8 @@ impl ChatMessage {
             badges,
             color,
             raw_message,
-            normalized_message: None,
-            security_flags: vec![],
+            normalized_message,
+            security_flags,
         }
     }
 }

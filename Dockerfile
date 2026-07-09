@@ -1,8 +1,6 @@
 # ---- Build Stage (Rust) ----
-FROM debian:bookworm as rust-builder
-RUN apt-get update && apt-get install -y curl build-essential pkg-config libssl-dev
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+FROM rust:1.85-bookworm as rust-builder
+RUN apt-get update && apt-get install -y pkg-config libssl-dev && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY Cargo.toml .
 COPY src ./src
@@ -12,7 +10,6 @@ RUN cargo build --release
 FROM node:20-bookworm-slim as ui-builder
 WORKDIR /ui
 COPY ui/package.json ./
-# Remove the package-lock.json if it doesn't exist, we just want to install
 RUN npm install
 COPY ui ./
 RUN npm run build
@@ -26,11 +23,8 @@ WORKDIR /app
 RUN useradd -m -U bot
 USER bot
 
-# Copy binaries and ui artifacts
+# Copy binary
 COPY --from=rust-builder /app/target/release/secure-twitch-monitor ./bot
-COPY --from=ui-builder /ui/dist ./ui/dist
 
-# Expose SSE API & Web server port
 EXPOSE 3000
-
 CMD ["./bot"]
