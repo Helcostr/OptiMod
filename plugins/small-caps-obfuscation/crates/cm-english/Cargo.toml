@@ -1,0 +1,24 @@
+[package]
+name = "cm-english"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "English word-ratio checker for chat monitoring modules"
+rust-version.workspace = true
+build = "build.rs"
+
+[dependencies]
+cm-core = { workspace = true }
+cm-alphabet = { workspace = true }
+cm-normalize = { workspace = true }
+phf = "0.11"
+
+[build-dependencies]
+phf_codegen = "0.11"
+
+[dev-dependencies]
+criterion = { version = "0.5", features = ["html_reports"] }
+
+[[bench]]
+name = "check"
+harness = false

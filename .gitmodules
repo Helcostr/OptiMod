@@ -1,0 +1,4 @@
+# Consumed by cm-english build.rs to merge into data/english_words.txt PHF dictionary.
+[submodule "plugins/small-caps-obfuscation/vendor/google-10000-english"]
+	path = plugins/small-caps-obfuscation/vendor/google-10000-english
+	url = https://github.com/first20hours/google-10000-english.git

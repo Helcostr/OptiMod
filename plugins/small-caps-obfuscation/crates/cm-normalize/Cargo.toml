@@ -1,0 +1,10 @@
+[package]
+name = "cm-normalize"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "NFKC normalization wrapper for chat monitoring modules"
+rust-version.workspace = true
+
+[dependencies]
+unicode-normalization = { workspace = true }

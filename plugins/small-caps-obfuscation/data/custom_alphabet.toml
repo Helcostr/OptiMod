@@ -1,0 +1,150 @@
+# Custom suspicious alphabet — source of truth for compile-time bitmap tables.
+# Edit this file; run `cargo build -p cm-alphabet` to regenerate lookup tables.
+#
+# Schema per [[char]] entry:
+#   codepoint — Unicode scalar (hex), sorted ascending in this file
+#   normal    — canonical ASCII letter after mapping
+#   category  — documentary grouping only (ipa_small_cap / phonetic_small_cap / latin_ext_d_small_cap)
+#
+# This is a selective homoglyph set for chat obfuscation, not a full a–z alphabet.
+
+[[char]]
+codepoint = 0x0262
+normal = "g"
+category = "ipa_small_cap"
+
+[[char]]
+codepoint = 0x026A
+normal = "i"
+category = "ipa_small_cap"
+
+[[char]]
+codepoint = 0x0274
+normal = "n"
+category = "ipa_small_cap"
+
+[[char]]
+codepoint = 0x0280
+normal = "r"
+category = "ipa_small_cap"
+
+[[char]]
+codepoint = 0x028F
+normal = "y"
+category = "ipa_small_cap"
+
+[[char]]
+codepoint = 0x0299
+normal = "b"
+category = "ipa_small_cap"
+
+[[char]]
+codepoint = 0x029C
+normal = "h"
+category = "ipa_small_cap"
+
+[[char]]
+codepoint = 0x029F
+normal = "l"
+category = "ipa_small_cap"
+
+[[char]]
+codepoint = 0x1D00
+normal = "a"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D04
+normal = "c"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D05
+normal = "d"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D07
+normal = "e"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D08
+normal = "f"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D09
+normal = "g"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D0A
+normal = "j"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D0B
+normal = "k"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D0D
+normal = "m"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D0F
+normal = "o"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D18
+normal = "p"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D1B
+normal = "t"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D1C
+normal = "u"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D1D
+normal = "v"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D1E
+normal = "w"
+category = "phonetic_small_cap"
+
+# Multiple phonetic small-caps can map to the same ASCII letter (0x1D1D/0x1D20 → v; 0x1D1E/0x1D21 → w).
+[[char]]
+codepoint = 0x1D20
+normal = "v"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D21
+normal = "w"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0x1D22
+normal = "z"
+category = "phonetic_small_cap"
+
+[[char]]
+codepoint = 0xA730
+normal = "f"
+category = "latin_ext_d_small_cap"
+
+[[char]]
+codepoint = 0xA731
+normal = "s"
+category = "latin_ext_d_small_cap"

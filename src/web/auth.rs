@@ -17,10 +17,11 @@ use zeroize::Zeroize;
 
 use crate::{
     chat::ws,
+    checkers::CheckerPipeline,
     config::app_config::{AppConfig, TwitchConfig},
     core::EventSender,
     events::models::ChatMessage,
-    plugins::Plugin,
+    plugins::EventPlugin,
 };
 
 #[derive(Clone)]
@@ -28,7 +29,8 @@ pub struct AppState {
     pub config: AppConfig,
     pub tx: EventSender,
     pub token: Arc<RwLock<Option<String>>>,
-    pub plugins: Arc<Vec<Arc<dyn Plugin>>>,
+    pub checkers: Arc<CheckerPipeline>,
+    pub plugins: Arc<Vec<Arc<dyn EventPlugin>>>,
     pub oauth_sessions: Arc<RwLock<HashMap<String, OAuthSession>>>,
     /// Live monitored channel. Mutable at runtime via POST /api/channel.
     /// Source of truth — `config.twitch.channel` is only the startup default.
@@ -142,10 +144,11 @@ pub async fn spawn_ws_listener(state: Arc<AppState>) {
         user_token,
     };
     let tx = state.tx.clone();
+    let checkers = state.checkers.clone();
     let plugins = state.plugins.clone();
 
     let handle = tokio::spawn(async move {
-        if let Err(e) = ws::connect_and_listen(twitch_config, tx, plugins).await {
+        if let Err(e) = ws::connect_and_listen(twitch_config, tx, checkers, plugins).await {
             error!("Chat listener error: {}", e);
         }
     });

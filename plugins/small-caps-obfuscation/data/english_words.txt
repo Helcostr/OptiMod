@@ -1,0 +1,11 @@
+# Chat/platform terms missing from vendor/google-10000-english.
+# Merged at build time; BTreeSet dedupes any overlap with the submodule list.
+bro
+creators
+discord
+followers
+genuinely
+loyal
+pulls
+streamer
+twitch

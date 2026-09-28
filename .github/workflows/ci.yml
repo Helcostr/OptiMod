@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, humble-beginnings]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+  PYTHONIOENCODING: utf-8
+  PLUGIN_DIR: plugins/small-caps-obfuscation
+
+jobs:
+  test:
+    name: Rust tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: ./.github/actions/rust-setup
+      - run: cargo test --workspace --verbose
+
+  fixtures:
+    name: JSONL fixtures
+    runs-on: ubuntu-latest
+    env:
+      FIXTURES_DIR: plugins/small-caps-obfuscation/fixtures
+      FIXTURE_REPORT: plugins/small-caps-obfuscation/target/fixture-report.json
+    steps:
+      - uses: ./.github/actions/rust-setup
+      - run: cargo run -p cm-fixture-runner -- "${{ env.FIXTURES_DIR }}"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fixture-report
+          path: ${{ env.FIXTURE_REPORT }}
+
+  truth-option:
+    name: Truth option (${{ matrix.label }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: fixture default
+            cm_force_is_good: ""
+            expected_optimod_check: "0"
+          - label: force allow
+            cm_force_is_good: "true"
+            expected_optimod_check: "1"
+          - label: force block
+            cm_force_is_good: "false"
+            expected_optimod_check: "0"
+    steps:
+      - uses: ./.github/actions/rust-setup
+      - name: Plugin build and ctypes truth option
+        env:
+          CM_FORCE_IS_GOOD: ${{ matrix.cm_force_is_good }}
+        run: |
+          cargo test -p cm-english twitch_small_caps_spam_blocks_on_english_plus_obfuscation -- --nocapture
+          cargo build -p small-caps-obfuscation-plugin --release
+          python3 "${{ env.PLUGIN_DIR }}/scripts/run_truth_option.py" --expected "${{ matrix.expected_optimod_check }}"

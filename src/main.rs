@@ -5,6 +5,7 @@ use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 mod chat;
+mod checkers;
 mod config;
 mod core;
 mod events;
@@ -13,8 +14,9 @@ mod security;
 mod web;
 
 use crate::{
+    checkers::CheckerPipeline,
     config::app_config::AppConfig,
-    plugins::{database::DatabasePlugin, logger::LoggerPlugin, metrics::MetricsPlugin, Plugin},
+    plugins::{database::DatabasePlugin, logger::LoggerPlugin, metrics::MetricsPlugin, EventPlugin},
 };
 
 #[tokio::main]
@@ -43,7 +45,8 @@ async fn main() -> anyhow::Result<()> {
     info!("Using database URL: {}", db_url);
     let (db_pool, db_plugin) = DatabasePlugin::new(&db_url).await?;
 
-    let plugins: Arc<Vec<Arc<dyn Plugin>>> = Arc::new(vec![
+    let checkers = Arc::new(CheckerPipeline::from_env());
+    let plugins: Arc<Vec<Arc<dyn EventPlugin>>> = Arc::new(vec![
         Arc::new(db_plugin),
         Arc::new(LoggerPlugin),
         Arc::new(MetricsPlugin::new()),
@@ -53,6 +56,7 @@ async fn main() -> anyhow::Result<()> {
         config: config.clone(),
         tx,
         token: Arc::new(RwLock::new(None)),
+        checkers,
         plugins,
         oauth_sessions: Arc::new(RwLock::new(std::collections::HashMap::new())),
         channel: Arc::new(RwLock::new(config.twitch.channel.clone())),

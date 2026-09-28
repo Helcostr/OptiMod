@@ -1,5 +1,7 @@
+use optimod_checker::PipelineVerdict;
+
 use crate::events::models::ChatMessage;
-use crate::plugins::Plugin;
+use crate::plugins::EventPlugin;
 use serde_json;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 use tokio::sync::mpsc;
@@ -137,12 +139,12 @@ impl DatabasePlugin {
     }
 }
 
-impl Plugin for DatabasePlugin {
+impl EventPlugin for DatabasePlugin {
     fn name(&self) -> &'static str {
         "database"
     }
 
-    fn on_message(&self, message: &ChatMessage) {
+    fn on_message(&self, message: &ChatMessage, _verdict: &PipelineVerdict) {
         // Non-blocking send - if channel is full, message is dropped
         if self.tx.try_send(message.clone()).is_err() {
             warn!("Database queue full, dropping message");

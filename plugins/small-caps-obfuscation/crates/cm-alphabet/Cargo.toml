@@ -1,0 +1,15 @@
+[package]
+name = "cm-alphabet"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Compile-time alphabet bitmap and canonicalization"
+rust-version.workspace = true
+build = "build.rs"
+
+[dependencies]
+cm-normalize = { workspace = true }
+
+[build-dependencies]
+toml = "0.8"
+serde = { workspace = true }

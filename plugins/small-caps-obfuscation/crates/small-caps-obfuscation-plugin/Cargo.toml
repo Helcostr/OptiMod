@@ -1,0 +1,16 @@
+[package]
+name = "small-caps-obfuscation-plugin"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "OptiMod plugin DLL — small-caps Unicode obfuscation (English-only today)"
+rust-version.workspace = true
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "optimod_small_caps_obfuscation"
+
+[dependencies]
+cm-core = { workspace = true }
+cm-english = { workspace = true }
+optimod-plugin-sdk = { workspace = true }

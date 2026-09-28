@@ -1,0 +1,10 @@
+name: Rust setup
+description: Checkout OptiMod with submodules and install stable Rust
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: dtolnay/rust-toolchain@stable

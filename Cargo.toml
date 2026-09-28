@@ -1,9 +1,44 @@
-[package]
-name = "secure-twitch-monitor"
+[workspace]
+resolver = "2"
+members = [
+    ".",
+    "crates/optimod-checker",
+    "sdk/rust/optimod-plugin-sdk",
+    "plugins/small-caps-obfuscation/crates/cm-core",
+    "plugins/small-caps-obfuscation/crates/cm-normalize",
+    "plugins/small-caps-obfuscation/crates/cm-alphabet",
+    "plugins/small-caps-obfuscation/crates/cm-english",
+    "plugins/small-caps-obfuscation/crates/small-caps-obfuscation-plugin",
+    "plugins/small-caps-obfuscation/crates/cm-fixture-runner",
+]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2021"
+license = "MIT"
+rust-version = "1.75"
+
+[workspace.dependencies]
+optimod-plugin-sdk = { path = "sdk/rust/optimod-plugin-sdk" }
+optimod-checker = { path = "crates/optimod-checker" }
+cm-core = { path = "plugins/small-caps-obfuscation/crates/cm-core" }
+cm-normalize = { path = "plugins/small-caps-obfuscation/crates/cm-normalize" }
+cm-alphabet = { path = "plugins/small-caps-obfuscation/crates/cm-alphabet" }
+cm-english = { path = "plugins/small-caps-obfuscation/crates/cm-english" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+rayon = "1.10"
+unicode-normalization = "0.1"
+
+[package]
+name = "secure-twitch-monitor"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
 
 [dependencies]
+optimod-checker = { workspace = true, features = ["small_caps_obfuscation", "dll"] }
 tokio = { version = "1.36", features = ["full"] }
 tokio-tungstenite = { version = "0.21", features = ["native-tls"] }
 reqwest = { version = "0.11", features = ["json", "native-tls"] }

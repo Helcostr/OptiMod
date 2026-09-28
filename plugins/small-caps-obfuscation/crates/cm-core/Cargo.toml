@@ -1,0 +1,14 @@
+[package]
+name = "cm-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Chat monitoring module contract: Action, CheckVerdict, Checker trait"
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true, optional = true }
+
+[features]
+default = ["serde"]
+serde = ["dep:serde"]

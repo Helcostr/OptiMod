@@ -4,10 +4,11 @@ use tracing::{error, info, warn};
 
 use crate::{
     chat::http::{fetch_token_owner_id, fetch_user_id, subscribe_to_chat},
+    checkers::{drop_blocked_messages, CheckerPipeline},
     config::app_config::TwitchConfig,
     core::EventSender,
     events::models::{Badge, ChatMessage},
-    plugins::Plugin,
+    plugins::EventPlugin,
     security::pipeline::inspect_message,
 };
 
@@ -16,7 +17,8 @@ use super::models::{TwitchChatMessage, TwitchWelcomeMessage};
 pub async fn connect_and_listen(
     config: TwitchConfig,
     tx: EventSender,
-    plugins: std::sync::Arc<Vec<std::sync::Arc<dyn Plugin>>>,
+    checkers: std::sync::Arc<CheckerPipeline>,
+    plugins: std::sync::Arc<Vec<std::sync::Arc<dyn EventPlugin>>>,
 ) -> anyhow::Result<()> {
     info!("Fetching Broadcaster User ID for channel: {}", config.channel);
     let broadcaster_id = fetch_user_id(&config.client_id, &config.user_token, &config.channel).await?;
@@ -60,7 +62,13 @@ pub async fn connect_and_listen(
                 } else if let Ok(chat) = serde_json::from_str::<TwitchChatMessage>(&text) {
                     if chat.metadata.message_type == "notification" {
                         let ev = chat.payload.event;
-                        let security = inspect_message(&ev.message.text);
+                        let raw_message = ev.message.text;
+                        let security = inspect_message(&raw_message);
+                        let verdict = checkers.inspect(&raw_message);
+
+                        let mut flags = security.flags;
+                        flags.extend(verdict.security_flags());
+
                         let badges = ev
                             .badges
                             .into_iter()
@@ -75,15 +83,18 @@ pub async fn connect_and_listen(
                             ev.chatter_user_name,
                             badges,
                             ev.color,
-                            ev.message.text,
+                            raw_message,
                             security.normalized_message,
-                            security.flags,
+                            flags,
                         );
 
                         for plugin in plugins.iter() {
-                            plugin.on_message(&msg_event);
+                            plugin.on_message(&msg_event, &verdict);
                         }
-                        let _ = tx.send(msg_event);
+
+                        if verdict.is_good() || !drop_blocked_messages() {
+                            let _ = tx.send(msg_event);
+                        }
                     }
                 }
             }

@@ -1,0 +1,5 @@
+# JSONL fixture cases for cm-fixture-runner (lines starting with # are skipped).
+{"module":"small-caps-obfuscation","input":"hello stream","expect":{"action":"pass"}}
+{"module":"small-caps-obfuscation","input":"ʏᴏ ʙʀᴏ ᴊᴜꜱᴛ ᴡᴀɴᴛᴇᴅ ᴛᴏ ꜱʜᴏᴡ","expect":{"action":"block","conversion_min":0.99,"english_ratio_min":0.8}}
+{"module":"small-caps-obfuscation","input":"hellᴏ","expect":{"action":"pass","conversion_min":0.99}}
+{"module":"small-caps-obfuscation","input_file":"fixtures/twitch_small_caps_spam/input.txt","expect":{"action":"block","obfuscation_min":0.75,"english_ratio_min":0.75,"word_count_min":30}}

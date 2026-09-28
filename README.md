@@ -1,43 +1,68 @@
-# Secure Twitch Chat Monitor
+# OptiMod — Secure Twitch Chat Monitor
 
-Native Twitch OAuth + EventSub chat monitor with a Rust Axum backend and Solid.js UI.
+Native Twitch OAuth + EventSub chat monitor with a Rust Axum backend, Solid.js UI,
+and a **plugin SDK** for content-checker DLLs.
+
+## Repository layout
+
+```
+OptiMod/                              ← parent (this repo)
+├── sdk/                              ← plugin contract for DLL authors
+├── plugins/small-caps-obfuscation/   ← example child plugin
+├── crates/optimod-checker/           ← host pipeline + loader
+└── src/                              ← Twitch monitor app
+```
 
 ## Features
 
 - Login with Twitch via browser OAuth
 - EventSub WebSocket subscription for `channel.chat.message`
-- In-memory token storage
-- SSE stream for UI/plugins
-- Unicode normalization and confusable-character security checks
-- Plugin trait with logger and metrics examples
+- Content-checker plugins (in-process + DLL via `OPTIMOD_PLUGIN_PATH`)
+- Event plugins: logger, metrics, database
+- Unicode normalization and confusable-character pre-checks
+
+## Plugin SDK
+
+Plugin authors implement four C exports defined in
+[`sdk/include/optimod_plugin.h`](sdk/include/optimod_plugin.h).
+
+Full guide: [`docs/plugin-sdk.md`](docs/plugin-sdk.md)
+
+Example plugin: [`plugins/small-caps-obfuscation`](plugins/small-caps-obfuscation)
+
+```bash
+git submodule update --init --recursive
+cargo build -p small-caps-obfuscation-plugin --release
+# → target/release/optimod_small_caps_obfuscation.dll
+```
 
 ## Run
 
 ### Local backend
+
 1. Copy `config.toml.example` to `config.toml`.
-2. Set environment variables:
-   - `TWITCH_CLIENT_ID`
-   - `TWITCH_CLIENT_SECRET`
-   - `TWITCH_CHANNEL`
-3. Start the Rust server.
-4. Open `http://localhost:3000/` and click `Login with Twitch`.
+2. Set `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `TWITCH_CHANNEL`.
+3. `cargo run`
+4. Open `http://localhost:3000/` and click **Login with Twitch**.
 
 ### Local UI
-1. `cd ui`
-2. `npm install`
-3. `npm run dev`
 
-The UI reads `http://localhost:3000/api/status` and `http://localhost:3000/events`.
+```bash
+cd ui && npm install && npm run dev
+```
 
 ### Docker
-1. Populate `.env` and `config.toml`.
-2. Build with `docker compose up --build`.
-3. Visit `http://localhost:3000/`.
 
-## UI
+```bash
+docker compose up --build
+```
 
-The Solid app is a development dashboard that consumes `http://localhost:3000/events` via `EventSource` and shows live chat events.
+## Checker configuration
 
-## Security
-
-The current pipeline normalizes chat text with NFC and flags confusable/control characters. It does not yet block messages; it only reports metadata.
+| Env var | Default | Layer |
+|---------|---------|-------|
+| `OPTIMOD_CHECKERS` | `small-caps-obfuscation` | Host — built-in checker |
+| `OPTIMOD_PLUGIN_PATH` | — | Host — DLL paths (`;`-separated) |
+| `OPTIMOD_DROP_BLOCKED` | `false` | Host — skip SSE on block |
+| `CM_BLOCK_OBFUSCATION_THRESHOLD` | `0.75` | Plugin — english module |
+| `CM_BLOCK_ENGLISH_RATIO` | `0.75` | Plugin — english module |
