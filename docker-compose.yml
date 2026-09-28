@@ -17,18 +17,32 @@ services:
     restart: unless-stopped
 
   monitor:
-    build: .
-    ports:
-      - "3000:3000"
+    build:
+      context: .
+      target: runtime
+    expose:
+      - "3000"
     environment:
       DATABASE_URL: postgresql://twitch:twitchpass@postgres/twitch_messages
     env_file:
       - .env
+    volumes:
+      - ./config.toml:/app/config.toml:ro
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
     command: ["./bot"]
+
+  nginx:
+    build:
+      context: .
+      target: nginx
+    ports:
+      - "3000:80"
+    depends_on:
+      - monitor
+    restart: unless-stopped
 
 volumes:
   postgres_data:

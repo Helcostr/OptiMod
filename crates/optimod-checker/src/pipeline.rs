@@ -1,4 +1,5 @@
 use optimod_plugin_sdk::Action;
+use serde_json::Value;
 
 /// One checker’s outcome for a single message.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -35,6 +36,9 @@ impl PipelineVerdict {
 pub trait CheckerModule: Send + Sync {
     fn name(&self) -> &str;
     fn decide(&self, text: &str) -> Action;
+    fn debug_detail(&self, _text: &str) -> Option<Value> {
+        None
+    }
 }
 
 pub fn run_checkers(checkers: &[&dyn CheckerModule], text: &str) -> PipelineVerdict {

@@ -1,0 +1,10 @@
+target/
+.git/
+.idea/
+.vscode/
+node_modules/
+ui/node_modules/
+ui/dist/
+.env
+*.md
+!README.md

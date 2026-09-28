@@ -480,6 +480,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "damsel-core"
+version = "0.1.0"
+dependencies = [
+ "cm-core",
+ "cm-normalize",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1447,8 +1455,10 @@ version = "0.1.0"
 dependencies = [
  "cm-core",
  "cm-english",
+ "damsel-core",
  "libloading",
  "optimod-plugin-sdk",
+ "serde_json",
  "tracing",
 ]
 

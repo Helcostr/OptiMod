@@ -1,0 +1,16 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/damsel-core",
+]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+rust-version = "1.75"
+
+[workspace.dependencies]
+damsel-core = { path = "crates/damsel-core" }
+cm-core = { path = "../small-caps-obfuscation/crates/cm-core" }
+cm-normalize = { path = "../small-caps-obfuscation/crates/cm-normalize" }

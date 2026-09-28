@@ -17,12 +17,18 @@ use zeroize::Zeroize;
 
 use crate::{
     chat::ws,
-    checkers::CheckerPipeline,
+    checkers::{CheckerPipeline, PluginTimingSnapshot},
     config::app_config::{AppConfig, TwitchConfig},
     core::EventSender,
-    events::models::ChatMessage,
+    events::models::{ChatMessage, MessageTimings},
     plugins::EventPlugin,
 };
+
+fn jsonb_value(row: &sqlx::postgres::PgRow, column: &str) -> Option<serde_json::Value> {
+    row.try_get::<Option<serde_json::Value>, _>(column)
+        .ok()
+        .flatten()
+}
 
 #[derive(Clone)]
 pub struct AppState {
@@ -88,6 +94,25 @@ pub struct ChannelResponse {
     pub error: Option<String>,
 }
 
+#[derive(Serialize)]
+pub struct PluginInfo {
+    pub name: String,
+}
+
+#[derive(Serialize)]
+pub struct CheckerPluginInfo {
+    pub name: String,
+    pub kind: String,
+    pub loaded: bool,
+    pub timing: PluginTimingSnapshot,
+}
+
+#[derive(Serialize)]
+pub struct PluginsResponse {
+    pub checkers: Vec<CheckerPluginInfo>,
+    pub event_plugins: Vec<PluginInfo>,
+}
+
 /// Normalize a channel login: trim, strip leading `#`, lowercase.
 fn normalize_channel(input: &str) -> String {
     input
@@ -107,16 +132,17 @@ fn row_to_message(row: &sqlx::postgres::PgRow) -> ChatMessage {
         user_id: row.try_get("user_id").unwrap_or_default(),
         user_login: row.try_get("user_login").unwrap_or_default(),
         user_name: row.try_get("user_name").unwrap_or_default(),
-        badges: serde_json::from_str(&row.try_get::<String, _>("badges").unwrap_or_default())
+        badges: jsonb_value(row, "badges")
+            .and_then(|value| serde_json::from_value(value).ok())
             .unwrap_or_default(),
         color: row.try_get("color").unwrap_or_default(),
         raw_message: row.try_get("raw_message").unwrap_or_default(),
         normalized_message: row.try_get("normalized_message").ok(),
-        security_flags: serde_json::from_str(
-            &row.try_get::<String, _>("security_flags")
-                .unwrap_or_default(),
-        )
-        .unwrap_or_default(),
+        security_flags: jsonb_value(row, "security_flags")
+            .and_then(|value| serde_json::from_value(value).ok())
+            .unwrap_or_default(),
+        timings: jsonb_value(row, "timings")
+            .and_then(|value| serde_json::from_value::<MessageTimings>(value).ok()),
     }
 }
 
@@ -225,6 +251,33 @@ pub async fn status_handler(State(state): State<Arc<AppState>>) -> impl IntoResp
         token_loaded,
         pending_oauth_sessions,
         ws_running,
+    })
+}
+
+pub async fn plugins_handler(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let timing = state.checkers.timing_snapshots();
+    Json(PluginsResponse {
+        checkers: state
+            .checkers
+            .descriptors()
+            .into_iter()
+            .map(|checker| {
+                let timing_stats = timing.get(&checker.name).cloned().unwrap_or_default();
+                CheckerPluginInfo {
+                    name: checker.name,
+                    kind: checker.kind,
+                    loaded: checker.loaded,
+                    timing: timing_stats,
+                }
+            })
+            .collect(),
+        event_plugins: state
+            .plugins
+            .iter()
+            .map(|plugin| PluginInfo {
+                name: plugin.name().to_string(),
+            })
+            .collect(),
     })
 }
 

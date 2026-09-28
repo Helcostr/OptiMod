@@ -10,10 +10,13 @@ rust-version.workspace = true
 optimod-plugin-sdk = { workspace = true }
 cm-core = { workspace = true, optional = true }
 cm-english = { workspace = true, optional = true }
+damsel-core = { workspace = true, optional = true }
 libloading = { version = "0.8", optional = true }
 tracing = { version = "0.1", optional = true }
+serde_json = { workspace = true }
 
 [features]
-default = ["small_caps_obfuscation"]
+default = ["small_caps_obfuscation", "damsel_in_distress"]
 small_caps_obfuscation = ["dep:cm-core", "dep:cm-english"]
+damsel_in_distress = ["dep:cm-core", "dep:damsel-core"]
 dll = ["dep:libloading", "dep:tracing"]

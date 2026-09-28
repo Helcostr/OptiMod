@@ -45,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Using database URL: {}", db_url);
     let (db_pool, db_plugin) = DatabasePlugin::new(&db_url).await?;
 
-    let checkers = Arc::new(CheckerPipeline::from_env());
+    let checkers = Arc::new(CheckerPipeline::from_env_hydrated(&db_pool).await);
     let plugins: Arc<Vec<Arc<dyn EventPlugin>>> = Arc::new(vec![
         Arc::new(db_plugin),
         Arc::new(LoggerPlugin),

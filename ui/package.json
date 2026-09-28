@@ -9,14 +9,20 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@tanstack/solid-router": "^1.170.17",
-    "@tanstack/solid-table": "^8.21.3",
-    "solid-js": "^1.9.13"
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.8",
+    "@mui/material": "^7.3.8",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "react-router-dom": "^7.13.1"
   },
   "devDependencies": {
     "@types/node": "^24.13.2",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^5.1.4",
     "typescript": "~6.0.2",
-    "vite": "^8.1.0",
-    "vite-plugin-solid": "^2.11.12"
+    "vite": "^8.1.0"
   }
 }

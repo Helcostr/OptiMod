@@ -1,0 +1,11 @@
+[package]
+name = "damsel-core"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Detect first-message flattery + Discord invite spam"
+rust-version.workspace = true
+
+[dependencies]
+cm-core = { workspace = true }
+cm-normalize = { workspace = true }

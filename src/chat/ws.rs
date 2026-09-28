@@ -1,4 +1,5 @@
 use futures_util::{SinkExt, StreamExt};
+use std::time::Instant;
 use tokio_tungstenite::{connect_async, tungstenite::protocol::Message};
 use tracing::{error, info, warn};
 
@@ -63,8 +64,13 @@ pub async fn connect_and_listen(
                     if chat.metadata.message_type == "notification" {
                         let ev = chat.payload.event;
                         let raw_message = ev.message.text;
+                        let security_start = Instant::now();
                         let security = inspect_message(&raw_message);
-                        let verdict = checkers.inspect(&raw_message);
+                        let security_duration_us = security_start.elapsed().as_micros() as u64;
+                        let inspect = checkers.inspect_timed(&raw_message, false);
+                        let timings =
+                            CheckerPipeline::message_timings(security_duration_us, &inspect);
+                        let verdict = inspect.verdict;
 
                         let mut flags = security.flags;
                         flags.extend(verdict.security_flags());
@@ -86,6 +92,7 @@ pub async fn connect_and_listen(
                             raw_message,
                             security.normalized_message,
                             flags,
+                            Some(timings),
                         );
 
                         for plugin in plugins.iter() {

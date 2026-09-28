@@ -45,12 +45,17 @@ impl DatabasePlugin {
                 color TEXT NOT NULL,
                 raw_message TEXT NOT NULL,
                 normalized_message TEXT,
-                security_flags JSONB NOT NULL
+                security_flags JSONB NOT NULL,
+                timings JSONB
             )
             "#,
         )
         .execute(&pool)
         .await?;
+
+        sqlx::query("ALTER TABLE messages ADD COLUMN IF NOT EXISTS timings JSONB")
+            .execute(&pool)
+            .await?;
 
         // Create indexes for efficient queries
         sqlx::query(
@@ -108,6 +113,11 @@ impl DatabasePlugin {
     async fn store_message(pool: &Pool<Postgres>, msg: &ChatMessage) -> anyhow::Result<()> {
         let badges_json = serde_json::to_string(&msg.badges)?;
         let flags_json = serde_json::to_string(&msg.security_flags)?;
+        let timings_json = msg
+            .timings
+            .as_ref()
+            .map(serde_json::to_string)
+            .transpose()?;
 
         // Cast strings to jsonb for PostgreSQL
         sqlx::query(
@@ -115,8 +125,8 @@ impl DatabasePlugin {
             INSERT INTO messages (
                 message_id, timestamp_ms, channel_id, channel_login,
                 user_id, user_login, user_name, badges, color,
-                raw_message, normalized_message, security_flags
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12::jsonb)
+                raw_message, normalized_message, security_flags, timings
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12::jsonb, $13::jsonb)
             ON CONFLICT (message_id) DO NOTHING
             "#,
         )
@@ -132,6 +142,7 @@ impl DatabasePlugin {
         .bind(&msg.raw_message)
         .bind(&msg.normalized_message)
         .bind(&flags_json)
+        .bind(timings_json)
         .execute(pool)
         .await?;
 

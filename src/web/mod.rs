@@ -6,6 +6,7 @@ use std::sync::Arc;
 use tower_http::services::ServeDir;
 
 pub mod auth;
+pub mod debug;
 pub mod sse;
 
 use crate::web::auth::AppState;
@@ -14,6 +15,8 @@ pub fn router(state: Arc<AppState>) -> Router {
     // API routes first (more specific paths)
     let api_router = Router::new()
         .route("/api/status", get(auth::status_handler))
+        .route("/api/plugins", get(auth::plugins_handler))
+        .route("/api/debug/message", post(debug::debug_message_handler))
         .route("/api/channel", post(auth::switch_channel_handler))
         .route("/api/flagged", get(auth::flagged_messages_handler))
         .route("/api/messages", get(auth::messages_handler))
